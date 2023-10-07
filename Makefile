@@ -5,7 +5,7 @@ createdb:
 	docker exec -it postgres12 createdb --username=root --owner=root simple_bank
 
 dropdb:
-	docker exec -it dropdb simple_bank
+	docker exec -it postgres12 dropdb simple_bank
 
 sqlc:
 	sqlc generate
@@ -13,4 +13,7 @@ sqlc:
 test:
 	go test -v -cover ./...
 
-.PHONY: postgres createdb dropdb sqlc test
+server:
+	go run main.go
+
+.PHONY: postgres createdb dropdb sqlc test server
