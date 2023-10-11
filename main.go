@@ -5,26 +5,34 @@ import (
 	"log"
 
 	api "dolyn157.dev/simplebank/api"
+	"dolyn157.dev/simplebank/config"
 	db "dolyn157.dev/simplebank/db/sqlc"
 	_ "github.com/lib/pq"
 )
 
 const (
-	dbDriver      = "postgres"
-	dbSource      = "postgresql://root:secret@localhost:15432/simple_bank?sslmode=disable"
-	serverAddress = "127.0.0.1:8080"
+	dbDriver = "postgres"
 )
 
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	config, err := config.LoadConfig("./config/.")
+	if err != nil {
+		log.Fatal("cannot load the config.", err)
+	}
+
+	conn, err := sql.Open(dbDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connected to the server.", err)
 	}
 
 	store := db.NewStore(conn)
-	server := api.NewServer(store)
 
-	err = server.Start(serverAddress)
+	server, err := api.NewServer(config, store)
+	if err != nil {
+		log.Fatal("cannot create the server.", err)
+	}
+
+	err = server.Start(config.HTTPServerAddress)
 	if err != nil {
 		log.Fatal("cannot start the server.", err)
 	}

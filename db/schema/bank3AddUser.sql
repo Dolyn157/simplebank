@@ -17,7 +17,7 @@ CREATE TABLE "accounts" (
 
 CREATE TABLE "entries" (
   "id" bigserial PRIMARY KEY,
-  "account_id" bigint NOT NULL,
+  "account_id" bigint NOT NULL DEFAULT 0,
   "amount" bigint NOT NULL,
   "created_at" timestamptz DEFAULT 'now()'
 );

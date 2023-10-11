@@ -1,7 +1,7 @@
 package api
 
 import (
-	"dolyn157.dev/simplebank/db/utils"
+	"dolyn157.dev/simplebank/utils"
 	"github.com/go-playground/validator/v10"
 )
 

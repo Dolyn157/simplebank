@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	db "dolyn157.dev/simplebank/db/sqlc"
+	"dolyn157.dev/simplebank/token"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,12 +25,19 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		return
 	}
 
-	isValid := server.validAccount(ctx, req.FromAccountID, req.Currency)
+	fromAccount, isValid := server.validAccount(ctx, req.FromAccountID, req.Currency)
 	if !isValid {
 		return
 	}
 
-	isValid = server.validAccount(ctx, req.ToAccountID, req.Currency)
+	authPayload := ctx.MustGet(authorizationPayloadkey).(*token.Payload)
+	if fromAccount.Owner != authPayload.Username {
+		err := fmt.Errorf("account [%d] doesn't belong to the authenticated user", req.FromAccountID)
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	_, isValid = server.validAccount(ctx, req.ToAccountID, req.Currency)
 	if !isValid {
 		return
 	}
@@ -49,23 +57,23 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, result)
 }
 
-func (server *Server) validAccount(ctx *gin.Context, accountID int64, currency string) bool {
+func (server *Server) validAccount(ctx *gin.Context, accountID int64, currency string) (account db.Account, isValid bool) {
 	account, err := server.store.GetAccount(ctx, accountID)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return false
+			return account, false
 		}
 
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return false
+		return account, false
 	}
 
 	if account.Currency != currency {
 		err := fmt.Errorf("account [%d] currency mismatch: %s vs %s", accountID, account.Currency, currency)
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return false
+		return account, false
 	}
-	return true
+	return account, true
 }

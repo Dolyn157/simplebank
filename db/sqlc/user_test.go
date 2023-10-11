@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"dolyn157.dev/simplebank/db/utils"
+	"dolyn157.dev/simplebank/utils"
 	"github.com/stretchr/testify/require"
 )
 
