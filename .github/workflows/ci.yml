@@ -15,7 +15,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
 
-      services:
+    services:
       # Label used to access the service container
       postgres:
         # Docker Hub image
@@ -36,6 +36,7 @@ jobs:
           - 15432:5432
 
     steps:
+    
     - uses: actions/checkout@v3
 
     - name: Set up Go
